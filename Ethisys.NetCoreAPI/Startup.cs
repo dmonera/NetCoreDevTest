@@ -1,15 +1,11 @@
+using Ethisys.NetCoreBusiness;
+using Ethisys.NetCoreBusiness.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Ethisys.NetCoreAPI
 {
@@ -26,6 +22,15 @@ namespace Ethisys.NetCoreAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddSingleton(Configuration);
+            services.AddScoped<IEthisysBusiness, EthisysBusiness>();
+
+            // TODO: Add Polly
+            services.AddHttpClient<IInventoryData, InventoryData>(client =>
+            {
+                client.BaseAddress = new Uri(Configuration["InventoryUrl"]);
+            }).AddPolicyHandler(NetCoreAPI.Configuration.Polly.GetRetryPolicy());
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
